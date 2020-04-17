@@ -1,4 +1,5 @@
 from aiohttp import web
+from app.api.handler import app_handler
 
 
 async def index(request):
@@ -6,7 +7,11 @@ async def index(request):
 
 
 async def add_person(request):
-    pass
+    payload = await request.json()
+    SQL = '''
+                INSERT INTO person(name, birthday) VALUES($1, $2)
+            ''', payload['name'], payload['birthday']
+    app_handler.hand(request, SQL, payload=payload, event='Add')
 
 
 async def del_person(request):

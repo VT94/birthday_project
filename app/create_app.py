@@ -12,5 +12,6 @@ async def init_app():
 
 
 async def run_db():
-    poll = await asyncpg.create_pool(dsn='postgres://postgres:{}@localhost/my_database'.format(settings.PASSWORD))
-    return poll
+    pool = await asyncpg.create_pool(dsn='postgres://postgres:{}@localhost/my_database'.format(settings.PASSWORD))
+    return pool
+
