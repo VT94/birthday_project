@@ -1,0 +1,4 @@
+aiohttp==3.6.2
+asyncpg==0.20.1
+envparse==0.2.0
+marshmallow==3.5.1
