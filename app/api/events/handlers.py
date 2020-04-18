@@ -2,8 +2,8 @@ from aiohttp import web
 from app.api.handler import app_handler
 
 
-async def index(request):
-    return web.Response(text='Hello')
+async def hello(request):
+    return web.json_response(data='Hello')
 
 
 async def add_person(request):

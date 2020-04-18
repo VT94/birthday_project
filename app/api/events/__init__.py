@@ -1,2 +1,1 @@
-import app.api.events.handlers
-import app.api.events.query
+from .handlers import hello, add_person, del_person

@@ -1,1 +1,1 @@
-from app.api.persons import handlers
+from .handlers import show_person, show_id, today
