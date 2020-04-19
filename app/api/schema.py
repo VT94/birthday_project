@@ -6,10 +6,10 @@ class PersonSchema(Schema):
     birthday = fields.Date(required=True)
 
     async def validate_in(self, payload):
-        try:
-            record = self.load(payload)
-        except Exception as err:
-            print(err)
+        record = self.load(payload)
+        return record
 
 
 schema_add = PersonSchema()
+schema_del = PersonSchema()
+schema_del.birthday = fields.Date(required=False)

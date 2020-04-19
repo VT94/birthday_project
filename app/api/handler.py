@@ -1,20 +1,23 @@
-from app.api.schema import schema_add
-
-
 class Handler:
-    async def hand(self, request, SQL):
-        pool = request.app.db
-        connection = await pool.acquire()
-        result = await self.person_show(connection, SQL)
-        await pool.release(connection)
+    async def hand_show(self, request, SQL: str) -> dict:
+        pool = await self.pool(request)
+        result = await self.person_show(pool[1], SQL)
+        await pool[0].release(pool[1])
         return result
 
-    async def person_show(self, connection, SQL):
+    async def person_show(self, connection, SQL: str) -> dict:
         result = await connection.fetch(SQL)
         return {record['name']: str(record['birthday']) for record in result}
 
-    async def event(self,connection, SQL, payload):
-        await connection.execute(SQL)
+    async def query(self, request, SQL: str, *args) -> None:
+        pool = await self.pool(request)
+        await pool[1].execute(SQL, *args)
+        await pool[0].release(pool[1])
+
+    async def pool(self, request) -> list:
+        pool = request.app.db
+        connection = await pool.acquire()
+        return [pool, connection]
 
 
 app_handler = Handler()
