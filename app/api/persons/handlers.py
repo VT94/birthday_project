@@ -1,25 +1,33 @@
 from aiohttp import web
-from app.api.handler import app_handler
-import datetime as dt
+from .query import show_all, show_id_person, birthday_date
+from datetime import datetime as dt
+from app.exception import BadRequestError
 
 
-async def show_person(request) -> 'json':
-    SQL = 'SELECT name, birthday FROM person'
-    out_data = await app_handler.hand_show(request, SQL)
+async def show_person(request) -> web.Response:
+    pool = request.app.db
+    async with pool.acquire() as conn:
+        out_data = await show_all(conn)
     return web.json_response(data=out_data)
 
 
-async def show_id(request) -> 'json':
-    request_id = request.match_info.get('id')
-    SQL = 'SELECT name, birthday FROM person WHERE id = {}'.format(request_id)
-    out_data = await app_handler.hand_show(request, SQL)
-    return web.json_response(data=out_data)
+async def show_id(request) -> web.Response:
+    try:
+        request_id = int(request.match_info.get('id'))
+        pool = request.app.db
+        async with pool.acquire() as conn:
+            out_data = await show_id_person(conn, id_=request_id)
+        return web.json_response(data=out_data)
+    except ValueError as err:
+        raise BadRequestError(err)
 
 
-async def today(request) -> 'json':
-    today_month = dt.datetime.today().date().month
-    today_day = dt.datetime.today().date().day
-    SQL = 'SELECT name, birthday FROM person WHERE extract(month from birthday) = {} and ' \
-          'extract(day from birthday) = {}'.format(today_month, today_day)
-    out_data = await app_handler.hand(request, SQL)
-    return web.json_response(data=out_data)
+async def date(request) -> web.Response:
+    try:
+        date = dt.strptime(request.match_info.get('date'), '%Y-%m-%d')
+        pool = request.app.db
+        async with pool.acquire() as conn:
+            out_data = await birthday_date(conn, date=date)
+        return web.json_response(data=out_data)
+    except ValueError as err:
+        raise BadRequestError(err)

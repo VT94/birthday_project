@@ -1,1 +1,2 @@
-from .handlers import show_person, show_id, today
+from .handlers import show_person, show_id, date
+

@@ -1,26 +1,34 @@
 from aiohttp import web
-from app.api.handler import app_handler
 from app.api.schema import schema_add, schema_del
-from app.api.events.query import SQL
+from app.api.events.query import add_person_SQL, del_person_SQL
+from app.exception import BadRequestError
+from marshmallow.exceptions import ValidationError
+from json.decoder import JSONDecodeError
 
 
-async def hello(request) -> 'json':
-    return web.json_response(data='Hello')
-
-
-async def add_person(request) -> None:
+async def add_person(request) -> web.Response:
     try:
         payload = await request.json()
-        data = await schema_add.validate_in(payload)
-        await app_handler.query(request, SQL['Add_person'], data['name'], data['birthday'])
-    except Exception as error:
-        print(error)
+        data = schema_add.load(payload)
+        pool = request.app.db
+        async with pool.acquire() as conn:
+            id_ = await add_person_SQL(conn, name=data['name'], birthday=data['birthday'])
+        return web.json_response(data=id_)
+    except ValidationError as err:
+        raise BadRequestError()
+    except JSONDecodeError as err:
+        raise BadRequestError()
 
 
-async def del_person(request) -> None:
+async def del_person(request) -> web.Response:
     try:
         payload = await request.json()
-        data = await schema_del.validate_in(payload)
-        await app_handler.query(request, SQL['Del_person'], data['name'])
-    except Exception as error:
-        print(error)
+        data = schema_del.load(payload)
+        pool = request.app.db
+        async with pool.acquire() as conn:
+            id_ = await del_person_SQL(conn, name=data['name'])
+        return web.json_response(data=id_)
+    except ValidationError as err:
+        raise BadRequestError(err)
+    except JSONDecodeError as err:
+        raise BadRequestError(err)
