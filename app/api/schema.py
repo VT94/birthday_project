@@ -6,7 +6,14 @@ class PersonSchema(Schema):
     birthday = fields.Date(required=True)
 
 
+class SchemaShow(Schema):
+    name = fields.Str()
+    birthday = fields.Date()
+    id = fields.Int()
+
+
 schema_add = PersonSchema()
 schema_del = PersonSchema()
 schema_del.birthday = fields.Date(required=False)
-
+schema_show = SchemaShow()
+schema_test = Schema()
