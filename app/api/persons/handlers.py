@@ -1,5 +1,5 @@
 from aiohttp import web
-from app.api.persons.query import show_all, show_id_person, birthday_date
+from .query import show_person_SQL
 from app.exception import BadRequestError
 from app.api import schema_show
 from marshmallow.exceptions import ValidationError
@@ -12,11 +12,6 @@ async def show_person(request) -> web.Response:
         raise BadRequestError
     pool = request.app.db
     async with pool.acquire() as conn:
-        if 'id' in query:
-            out_data = await show_id_person(conn, id_=query['id'])
-            return web.json_response(data=out_data)
-        elif 'birthday' in query:
-            out_data = await birthday_date(conn, date=query['birthday'])
-            return web.json_response(data=out_data)
-        out_data = await show_all(conn)
+        data = await show_person_SQL(conn, **query)
+        out_data = schema_show.dump(data, many=True)
     return web.json_response(data=out_data)
